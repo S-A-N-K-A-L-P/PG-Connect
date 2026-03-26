@@ -2,14 +2,13 @@
 
 import React from "react";
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   padding?: string;
-  className?: string;
-  style?: React.CSSProperties;
+  hover?: boolean;
 }
 
-export const Card: React.FC<CardProps> = ({ children, padding = "24px", style, ...props }) => {
+export const Card: React.FC<CardProps> = ({ children, padding = "24px", style, hover, ...props }) => {
   return (
     <div
       style={{
@@ -17,7 +16,8 @@ export const Card: React.FC<CardProps> = ({ children, padding = "24px", style, .
         border: "1px solid var(--border-light)",
         borderRadius: "var(--radius-lg)",
         padding,
-        boxShadow: "var(--shadow-md)",
+        boxShadow: hover ? "var(--shadow-lg)" : "var(--shadow-md)",
+        transition: "all 0.3s ease",
         ...style,
       }}
       {...props}

@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+import { getDb } from "@/lib/mongodb";
+import cloudinary from "@/lib/cloudinary";
 
 export async function POST(req: NextRequest) {
     try {
@@ -11,26 +8,39 @@ export async function POST(req: NextRequest) {
         const files = formData.getAll("files") as File[];
 
         if (!files.length) {
-            return NextResponse.json({ error: "No files" }, { status: 400 });
+            return NextResponse.json({ error: "No files provided" }, { status: 400 });
         }
         if (files.length > 10) {
-            return NextResponse.json({ error: "Max 10 images" }, { status: 400 });
+            return NextResponse.json({ error: "Maximum 10 images allowed" }, { status: 400 });
         }
 
-        // Ensure upload directory exists
-        await mkdir(UPLOAD_DIR, { recursive: true });
-
-        const origin = new URL(req.url).origin;
+        const db = await getDb();
+        const mediaCol = db.collection("media");
         const urls: string[] = [];
 
         for (const file of files) {
+            // Convert file to base64 for Cloudinary
             const buffer = Buffer.from(await file.arrayBuffer());
-            const ext = file.name.split(".").pop() || "jpg";
-            const fileName = `${randomUUID()}.${ext}`;
-            const filePath = path.join(UPLOAD_DIR, fileName);
+            const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-            await writeFile(filePath, buffer);
-            urls.push(`${origin}/uploads/${fileName}`);
+            // Upload to Cloudinary
+            const result = await cloudinary.uploader.upload(base64, {
+                folder: "pgconnect/uploads",
+                transformation: [{ quality: "auto", fetch_format: "auto" }],
+            });
+
+            // Store metadata in MongoDB
+            await mediaCol.insertOne({
+                Url: result.secure_url,
+                PublicId: result.public_id,
+                OriginalName: file.name,
+                MimeType: file.type,
+                Size: file.size,
+                Source: "direct_upload",
+                CreatedAt: new Date(),
+            });
+
+            urls.push(result.secure_url);
         }
 
         return NextResponse.json({ urls });

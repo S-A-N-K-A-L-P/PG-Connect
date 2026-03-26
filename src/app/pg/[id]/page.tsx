@@ -122,43 +122,47 @@ export default function PGDetailPage() {
                         <div style={{ paddingBottom: "32px", borderBottom: "1px solid var(--border-light)", marginBottom: "32px" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <div>
-                                    <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text)" }}>Private stay hosted by {pg.PostedBy || "Our Partner"}</h2>
-                                    <p style={{ color: "var(--text-secondary)", marginTop: "4px" }}>5 guests • {pg.RoomTypes.length} room types • Shared bathrooms</p>
+                                    <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text)" }}>Private stay hosted by {pg.PostedBy || "Owner"}</h2>
+                                    <p style={{ color: "var(--text-secondary)", marginTop: "4px" }}>
+                                        {pg.Floors?.reduce((acc: number, f: any) => acc + f.Rooms.length, 0) || 0} Rooms total • Shared bathrooms
+                                    </p>
                                 </div>
                                 <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#f0f0f0", overflow: "hidden" }}>
                                     <img src={`https://i.pravatar.cc/150?u=${pg.Id}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                 </div>
                             </div>
                         </div>
-
+ 
                         {/* Description */}
                         <div style={{ paddingBottom: "32px", borderBottom: "1px solid var(--border-light)", marginBottom: "32px" }}>
                             <p style={{ fontSize: "1.125rem", lineHeight: 1.6, color: "var(--text)" }}>
                                 {pg.Description || "No description provided."}
                             </p>
                         </div>
-
+ 
                         {/* Amenities */}
                         <div style={{ paddingBottom: "32px", borderBottom: "1px solid var(--border-light)", marginBottom: "32px" }}>
                             <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text)", marginBottom: "24px" }}>What this place offers</h2>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                                {pg.Amenities.map((a: string, i: number) => (
+                                {pg.Amenities?.map((a: string, i: number) => (
                                     <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "1rem", color: "var(--text)" }}>
                                         <span style={{ fontSize: "1.25rem" }}>✔️</span> {a}
                                     </div>
                                 ))}
+                                {(!pg.Amenities || pg.Amenities.length === 0) && <p style={{ color: "var(--text-secondary)" }}>No amenities listed.</p>}
                             </div>
                         </div>
-
+ 
                         {/* Nearby Landmarks */}
                         <div style={{ paddingBottom: "32px", borderBottom: "1px solid var(--border-light)", marginBottom: "32px" }}>
                             <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--text)", marginBottom: "24px" }}>Location Highlights</h2>
                             <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
-                                {pg.NearbyLandmarks.map((l: any, i: number) => (
+                                {pg.NearbyLandmarks?.map((l: any, i: number) => (
                                     <div key={i} style={{ padding: "12px 20px", background: "var(--bg-secondary)", borderRadius: "12px", fontSize: "0.95rem" }}>
-                                        <span style={{ fontWeight: 700 }}>🚶 {l.Distance}</span> from {l.Name}
+                                        <span style={{ fontWeight: 700 }}>🚶 {l.Distance || l.distance}</span> from {l.Name || l.name}
                                     </div>
                                 ))}
+                                {(!pg.NearbyLandmarks || pg.NearbyLandmarks.length === 0) && <p style={{ color: "var(--text-secondary)" }}>No landmarks nearby.</p>}
                             </div>
                         </div>
                     </div>
@@ -199,7 +203,13 @@ export default function PGDetailPage() {
                                 </div>
                             </div>
 
-                            <Button size="lg" fullWidth shadow="lg" style={{ marginBottom: "16px", borderRadius: "12px" }}>
+                            <Link href={`/pg/${id}/apply`}>
+                                <Button size="lg" fullWidth shadow="lg" style={{ marginBottom: "16px", borderRadius: "12px" }}>
+                                    ✨ Apply to Stay
+                                </Button>
+                            </Link>
+
+                            <Button variant="outline" size="lg" fullWidth style={{ marginBottom: "16px", borderRadius: "12px" }}>
                                 📞 Contact Owner
                             </Button>
                             

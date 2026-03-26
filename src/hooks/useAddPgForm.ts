@@ -1,44 +1,81 @@
-"use client";
-
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-
+import { useSession } from "next-auth/react";
+import { Floor, Room, RoomStatus } from "@/models";
+ 
 const API_BASE = "/api";
-
-export interface RoomTypeInput {
-    type: string;
-    available: number;
-    price: number;
-}
-export interface LandmarkInput {
-    name: string;
-    distance: string;
-}
-
+ 
 export function useAddPgForm() {
+    const { data: session } = useSession();
     const router = useRouter();
     const fileRef = useRef<HTMLInputElement>(null);
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [address, setAddress] = useState("");
+    const [fullAddress, setFullAddress] = useState("");
     const [city, setCity] = useState("");
     const [area, setArea] = useState("");
-    const [rent, setRent] = useState("");
+    const [rent, setRent] = useState(""); // Base/Avg rent
     const [deposit, setDeposit] = useState("");
     const [contactPhone, setContactPhone] = useState("");
     const [contactEmail, setContactEmail] = useState("");
 
-    const [roomTypes, setRoomTypes] = useState<RoomTypeInput[]>([]);
-    const [newRoom, setNewRoom] = useState({ type: "Single", available: 1, price: 0 });
+    // Floors and Rooms
+    const [floors, setFloors] = useState<Floor[]>([]);
+
+    const addFloor = () => {
+        const nextFloorNum = floors.length > 0 ? Math.max(...floors.map(f => f.FloorNumber)) + 1 : 1;
+        setFloors([...floors, { FloorNumber: nextFloorNum, Rooms: [] }]);
+    };
+
+    const removeFloor = (floorNum: number) => {
+        setFloors(floors.filter(f => f.FloorNumber !== floorNum));
+    };
+
+    const addRoom = (floorNum: number) => {
+        setFloors(floors.map(f => {
+            if (f.FloorNumber === floorNum) {
+                const newRoom: Room = {
+                    RoomId: Math.random().toString(36).substr(2, 9),
+                    RoomNumber: `${floorNum}${f.Rooms.length + 1}`,
+                    Type: "Single",
+                    Price: 0,
+                    MaxCapacity: 1,
+                    CurrentOccupancy: 0,
+                    Status: "AVAILABLE",
+                    GuestIds: []
+                };
+                return { ...f, Rooms: [...f.Rooms, newRoom] };
+            }
+            return f;
+        }));
+    };
+
+    const updateRoom = (floorNum: number, roomId: string, updates: Partial<Room>) => {
+        setFloors(floors.map(f => {
+            if (f.FloorNumber === floorNum) {
+                return {
+                    ...f,
+                    Rooms: f.Rooms.map(r => r.RoomId === roomId ? { ...r, ...updates } : r)
+                };
+            }
+            return f;
+        }));
+    };
+
+    const removeRoom = (floorNum: number, roomId: string) => {
+        setFloors(floors.map(f => {
+            if (f.FloorNumber === floorNum) {
+                return { ...f, Rooms: f.Rooms.filter(r => r.RoomId !== roomId) };
+            }
+            return f;
+        }));
+    };
 
     const [amenities, setAmenities] = useState<string[]>([]);
     const [newAmenity, setNewAmenity] = useState("");
 
-    const [equipment, setEquipment] = useState<string[]>([]);
-    const [newEquip, setNewEquip] = useState("");
-
-    const [landmarks, setLandmarks] = useState<LandmarkInput[]>([]);
+    const [landmarks, setLandmarks] = useState<{name: string, distance: string}[]>([]);
     const [newLandmark, setNewLandmark] = useState({ name: "", distance: "" });
 
     const [minMonths, setMinMonths] = useState("1");
@@ -53,15 +90,12 @@ export function useAddPgForm() {
 
     const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        const total = images.length + files.length;
-        if (total > 10) {
+        if (images.length + files.length > 10) {
             setError("Maximum 10 images allowed");
             return;
         }
-        const newImages = [...images, ...files];
-        setImages(newImages);
-        const newPreviews = files.map((f) => URL.createObjectURL(f));
-        setPreviews([...previews, ...newPreviews]);
+        setImages([...images, ...files]);
+        setPreviews([...previews, ...files.map(f => URL.createObjectURL(f))]);
         setError("");
     };
 
@@ -72,71 +106,49 @@ export function useAddPgForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (images.length < 1) {
-            setError("Please upload at least 1 image");
-            return;
-        }
         setSubmitting(true);
         setError("");
 
         try {
-            let imageUrls: string[] = [];
+            const formData = new FormData();
             if (images.length > 0) {
-                const formData = new FormData();
-                images.forEach((img) => formData.append("files", img));
-
-                const uploadRes = await fetch(`${API_BASE}/upload`, {
-                    method: "POST",
-                    body: formData,
-                });
-
-                if (!uploadRes.ok) {
-                    const uploadErr = await uploadRes.json();
-                    throw new Error(uploadErr.error || "Image upload failed");
-                }
-                const uploadData = await uploadRes.json();
-                imageUrls = uploadData.urls || [];
+                formData.append("files", images[0]);
             }
+ 
+            const uploadRes = await fetch(`${API_BASE}/upload`, {
+                method: "POST",
+                body: formData
+            });
+            const imageUrls = (await uploadRes.json()).urls || [];
 
             const body = {
+                OwnerId: (session?.user as any)?.id,
                 Title: title,
                 Description: description,
-                Address: address,
+                FullAddress: fullAddress,
                 City: city,
                 Area: area,
                 Rent: parseFloat(rent),
                 SecurityDeposit: parseFloat(deposit),
-                RoomTypes: roomTypes.map((r) => ({
-                    Type: r.type,
-                    Available: r.available,
-                    Price: r.price,
-                })),
+                Floors: floors,
                 Amenities: amenities,
-                Equipment: equipment,
-                NearbyLandmarks: landmarks.map((l) => ({
-                    Name: l.name,
-                    Distance: l.distance,
-                })),
+                NearbyLandmarks: landmarks,
                 RentAgreement: {
                     MinMonths: parseInt(minMonths),
                     MaxMonths: parseInt(maxMonths),
                     Conditions: conditions,
                 },
-                ContactPhone: contactPhone,
-                ContactEmail: contactEmail,
                 Images: imageUrls,
+                IsAcceptingGuests: true
             };
 
             const res = await fetch(`${API_BASE}/pg-listings`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
             });
 
             if (!res.ok) throw new Error("Failed to create listing");
-
             setSuccess(true);
             setTimeout(() => router.push("/"), 2000);
         } catch (err: unknown) {
@@ -149,19 +161,16 @@ export function useAddPgForm() {
         formState: {
             title, setTitle,
             description, setDescription,
-            address, setAddress,
+            fullAddress, setFullAddress,
             city, setCity,
             area, setArea,
             rent, setRent,
             deposit, setDeposit,
             contactPhone, setContactPhone,
             contactEmail, setContactEmail,
-            roomTypes, setRoomTypes,
-            newRoom, setNewRoom,
+            floors, setFloors,
             amenities, setAmenities,
             newAmenity, setNewAmenity,
-            equipment, setEquipment,
-            newEquip, setNewEquip,
             landmarks, setLandmarks,
             newLandmark, setNewLandmark,
             minMonths, setMinMonths,
@@ -175,9 +184,12 @@ export function useAddPgForm() {
             handleFiles,
             removeImage,
             handleSubmit,
+            addFloor,
+            removeFloor,
+            addRoom,
+            updateRoom,
+            removeRoom
         },
-        refs: {
-            fileRef
-        }
+        refs: { fileRef }
     };
 }

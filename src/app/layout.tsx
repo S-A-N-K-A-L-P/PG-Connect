@@ -7,12 +7,16 @@ export const metadata: Metadata = {
     "Discover verified PGs near your university. Compare rooms, amenities, and rent. List your PG for free.",
 };
 
+import { Providers } from "@/components/providers/SessionProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

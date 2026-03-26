@@ -31,15 +31,16 @@ export default function LandingPage() {
         return res.json();
       })
       .then(data => {
-        if (data.Items) {
-          const mapped = data.Items.map((item: any) => ({
+        // API returns a direct array, not { Items: [] }
+        if (Array.isArray(data)) {
+          const mapped = data.map((item: any) => ({
             id: item.Id,
             image: item.Images?.[0] || "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800",
             name: item.Title || "Standard PG",
             location: `${item.Area || ""}, ${item.City || ""}`,
             price: item.Rent || 0,
             tags: item.Amenities?.slice(0, 3) || ["WiFi", "AC"],
-            rating: 4.5 + Math.random() * 0.5 // Generating a realistic looking random rating if not available
+            rating: 4.8 // Fixed value for stability during hydration
           }));
           setPgs(mapped);
         }
@@ -158,17 +159,15 @@ export default function LandingPage() {
       <Section id="about">
         <Container size="xl">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-             <style jsx>{`
-              @media (max-width: 1024px) {
-                .about-grid {
-                  grid-template-columns: 1fr !important;
-                  gap: 40px !important;
-                }
-              }
-            `}</style>
-            <div className="about-grid" style={{ display: "contents" }}>
-              <AboutGallery />
-              <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+             <div style={{ 
+               display: "grid", 
+               gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", 
+               gap: "80px", 
+               alignItems: "center",
+               width: "100%"
+             }}>
+                <AboutGallery />
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                 <TrustBadge label="Built for Students" />
                 <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text)", letterSpacing: "-1.5px", lineHeight: 1.1 }}>
                   Simplifying PG search <br /> one city at a time.

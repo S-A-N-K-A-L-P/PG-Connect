@@ -1,0 +1,110 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Container } from "@/components/portfolio/Container";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Navbar } from "@/components/portfolio/Navbar";
+
+export default function LoginPage() {
+    const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+
+        try {
+            const res = await signIn("credentials", {
+                email,
+                password,
+                redirect: false,
+            });
+
+            if (res?.error) {
+                setError("Invalid email or password");
+            } else {
+                // Fetch session to check role and redirect
+                const sessionRes = await fetch("/api/auth/session");
+                const session = await sessionRes.json();
+                
+                if (session?.user?.role === "PG_OWNER") {
+                    router.push("/owner/dashboard");
+                } else {
+                    router.push("/");
+                }
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <main style={{ minHeight: "100vh", background: "white" }}>
+            <Navbar />
+            
+            <Container size="sm" style={{ paddingTop: "100px", paddingBottom: "100px" }}>
+                <div style={{ textAlign: "center", marginBottom: "48px" }}>
+                    <h1 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text)", marginBottom: "16px", letterSpacing: "-1.5px" }}>
+                        Sign In to PGXplore
+                    </h1>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "1.125rem" }}>
+                        Access your dashboard and manage your stays
+                    </p>
+                </div>
+
+                <Card padding="40px" shadow="lg" style={{ borderRadius: "24px" }}>
+                    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                        {error && (
+                            <div style={{ padding: "12px", background: "#fef2f2", color: "#dc2626", borderRadius: "12px", fontSize: "0.9rem", textAlign: "center", border: "1px solid #fee2e2" }}>
+                                {error}
+                            </div>
+                        )}
+                        
+                        <Input 
+                            label="Email Address" 
+                            type="email" 
+                            placeholder="name@university.edu" 
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)} 
+                            required 
+                        />
+                        
+                        <Input 
+                            label="Password" 
+                            type="password" 
+                            placeholder="••••••••" 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            required 
+                        />
+
+                        <Button type="submit" size="lg" fullWidth shadow="lg" disabled={loading} style={{ marginTop: "12px" }}>
+                            {loading ? "Signing in..." : "Continue to Dashboard"}
+                        </Button>
+
+                        <div style={{ textAlign: "center", marginTop: "12px" }}>
+                            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                                Don't have an account? <Link href="/register" style={{ color: "var(--primary)", fontWeight: 600 }}>Register here</Link>
+                            </p>
+                        </div>
+                    </form>
+                </Card>
+
+                <p style={{ textAlign: "center", marginTop: "40px", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+                    By continuing, you agree to our Terms of Service and Privacy Policy.
+                </p>
+            </Container>
+        </main>
+    );
+}

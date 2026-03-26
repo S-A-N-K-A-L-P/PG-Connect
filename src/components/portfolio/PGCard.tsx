@@ -24,34 +24,39 @@ export const PGCard: React.FC<PGCardProps> = ({
   price,
   tags,
   rating = 4.5,
+  ...styleProps
 }) => {
+  const style = (styleProps as any).style;
+  const [isHovered, setIsHovered] = React.useState(false);
+
   return (
     <Link href={`/pg/${id}`} style={{ textDecoration: "none" }}>
-      <Card padding="0" style={{ 
-        overflow: "hidden", 
-        cursor: "pointer", 
-        transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-        border: "1px solid var(--border-light)"
-      }} className="pg-card-hover">
-        <style jsx>{`
-          .pg-card-hover:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-            border-color: var(--primary-light);
-          }
-          .pg-card-img {
-            transition: transform 0.6s ease;
-          }
-          .pg-card-hover:hover .pg-card-img {
-            transform: scale(1.05);
-          }
-        `}</style>
+      <Card 
+        padding="0" 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{ 
+          overflow: "hidden", 
+          cursor: "pointer", 
+          transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+          border: isHovered ? "1px solid var(--primary-light)" : "1px solid var(--border-light)",
+          transform: isHovered ? "translateY(-8px)" : "none",
+          boxShadow: isHovered ? "0 20px 40px rgba(0,0,0,0.12)" : "var(--shadow-md)",
+          ...style
+        }}
+      >
         <div style={{ position: "relative", aspectRatio: "1.2", overflow: "hidden" }}>
           <img 
             src={image} 
             alt={name} 
             className="pg-card-img"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+            style={{ 
+              width: "100%", 
+              height: "100%", 
+              objectFit: "cover",
+              transition: "transform 0.6s ease",
+              transform: isHovered ? "scale(1.05)" : "scale(1)"
+            }} 
           />
           <div style={{ position: "absolute", top: "12px", right: "12px" }}>
             <Badge variant="success">Verified</Badge>

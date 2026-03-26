@@ -22,7 +22,7 @@ export default function AddPgPage() {
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    const SuccessOverlay = () => (
+    const successOverlay = formState.success && (
         <div style={{ 
             position: "fixed", 
             top: 0, 
@@ -71,7 +71,7 @@ export default function AddPgPage() {
         </div>
     );
 
-    const FormContent = () => (
+    const formContent = (
         <form onSubmit={handlers.handleSubmit}>
             <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? "0" : "40px" }}>
                 
@@ -92,9 +92,9 @@ export default function AddPgPage() {
                         <MobileFormSection title="Location">
                             <Input label="City" placeholder="e.g. Mohali" value={formState.city} onChange={(e) => formState.setCity(e.target.value)} required />
                             <Input label="Area" placeholder="e.g. Sector 81" value={formState.area} onChange={(e) => formState.setArea(e.target.value)} required />
-                            <Input label="Full Address" placeholder="Address..." value={formState.address} onChange={(e) => formState.setAddress(e.target.value)} required />
+                            <Input label="Full Address" placeholder="Detailed address..." value={formState.fullAddress} onChange={(e) => formState.setFullAddress(e.target.value)} required />
                         </MobileFormSection>
-
+ 
                         <MobileFormSection title="Pricing">
                             <div className="form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                                 <Input label="Rent (₹)" type="number" value={formState.rent} onChange={(e) => formState.setRent(e.target.value)} required />
@@ -120,7 +120,7 @@ export default function AddPgPage() {
                                 <Input label="City" value={formState.city} onChange={(e) => formState.setCity(e.target.value)} required />
                                 <Input label="Area" value={formState.area} onChange={(e) => formState.setArea(e.target.value)} required />
                             </div>
-                            <Input label="Full Address" value={formState.address} onChange={(e) => formState.setAddress(e.target.value)} required />
+                            <Input label="Full Address" value={formState.fullAddress} onChange={(e) => formState.setFullAddress(e.target.value)} required />
                             <div className="form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                                 <Input label="Monthly Rent (₹)" type="number" value={formState.rent} onChange={(e) => formState.setRent(e.target.value)} required />
                                 <Input label="Deposit (₹)" type="number" value={formState.deposit} onChange={(e) => formState.setDeposit(e.target.value)} required />
@@ -132,42 +132,91 @@ export default function AddPgPage() {
                         </div>
                     </div>
                 )}
-
-                {/* Additional Details Section */}
+ 
+                {/* Property Structure Section */}
                 <div style={{ marginTop: isMobile ? "0" : "32px", borderTop: isMobile ? "none" : "1px solid var(--border-light)", paddingTop: isMobile ? "0" : "32px" }}>
-                    <h3 style={{ marginBottom: "24px", fontSize: "1.25rem", fontWeight: 700 }}>Additional Details</h3>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+                        <h3 style={{ fontSize: "1.25rem", fontWeight: 700 }}>Property Structure</h3>
+                        <Button type="button" variant="outline" size="sm" onClick={handlers.addFloor}>+ Add Floor</Button>
+                    </div>
+ 
+                    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                        {formState.floors.map((floor) => (
+                            <div key={floor.FloorNumber} style={{ padding: "24px", background: "var(--bg-secondary)", borderRadius: "16px", border: "1px solid var(--border)" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                                    <h4 style={{ fontWeight: 700 }}>Floor {floor.FloorNumber}</h4>
+                                    <div style={{ display: "flex", gap: "12px" }}>
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => handlers.addRoom(floor.FloorNumber)}>+ Add Room</Button>
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => handlers.removeFloor(floor.FloorNumber)} style={{ color: "var(--error)" }}>Remove Floor</Button>
+                                    </div>
+                                </div>
+ 
+                                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                                    {floor.Rooms.map((room) => (
+                                        <div key={room.RoomId} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.2fr 100px 40px", gap: "12px", alignItems: "end", background: "white", padding: "16px", borderRadius: "12px", border: "1px solid var(--border-light)" }}>
+                                            <Input 
+                                                label="No." 
+                                                value={room.RoomNumber} 
+                                                onChange={(e) => handlers.updateRoom(floor.FloorNumber, room.RoomId, { RoomNumber: e.target.value })} 
+                                                style={{ marginBottom: 0 }}
+                                            />
+                                            <div>
+                                                <label style={{ fontSize: "0.75rem", fontWeight: 700, display: "block", marginBottom: "4px" }}>TYPE</label>
+                                                <select 
+                                                    value={room.Type} 
+                                                    onChange={(e) => handlers.updateRoom(floor.FloorNumber, room.RoomId, { Type: e.target.value as any })}
+                                                    style={{ width: "100%", padding: "10px", background: "white", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "0.9rem" }}
+                                                >
+                                                    <option value="Single">Single</option>
+                                                    <option value="Double">Double</option>
+                                                    <option value="Triple">Triple</option>
+                                                </select>
+                                            </div>
+                                            <Input 
+                                                label="Price (₹)" 
+                                                type="number" 
+                                                value={room.Price || ""} 
+                                                onChange={(e) => handlers.updateRoom(floor.FloorNumber, room.RoomId, { Price: +e.target.value })} 
+                                                style={{ marginBottom: 0 }}
+                                            />
+                                            <div>
+                                                <label style={{ fontSize: "0.75rem", fontWeight: 700, display: "block", marginBottom: "4px" }}>STATUS</label>
+                                                <select 
+                                                    value={room.Status} 
+                                                    onChange={(e) => handlers.updateRoom(floor.FloorNumber, room.RoomId, { Status: e.target.value as any })}
+                                                    style={{ width: "100%", padding: "10px", background: "white", border: "1px solid var(--border)", borderRadius: "8px", fontSize: "0.9rem" }}
+                                                >
+                                                    <option value="AVAILABLE">Available</option>
+                                                    <option value="LOCKED">Locked</option>
+                                                    <option value="FULL">Full</option>
+                                                </select>
+                                            </div>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handlers.removeRoom(floor.FloorNumber, room.RoomId)}
+                                                style={{ height: "40px", width: "40px", display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "none", color: "var(--error)", cursor: "pointer", fontSize: "1.25rem" }}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {floor.Rooms.length === 0 && (
+                                        <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "0.9rem", padding: "20px", border: "1px dashed var(--border)", borderRadius: "12px" }}>No rooms added to this floor.</p>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                        {formState.floors.length === 0 && (
+                            <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: "1rem", padding: "40px", border: "2px dashed var(--border)", borderRadius: "16px" }}>Start by adding the first floor of your property.</p>
+                        )}
+                    </div>
+                </div>
+ 
+                {/* Additional Details Section */}
+                <div style={{ marginTop: "48px", borderTop: "1px solid var(--border-light)", paddingTop: "32px" }}>
+                    <h3 style={{ marginBottom: "24px", fontSize: "1.25rem", fontWeight: 700 }}>Amenities & Location</h3>
                     
                     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-                        {/* Room Types */}
-                        <div>
-                            <label style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text)", display: "block", marginBottom: "12px" }}>Room Types</label>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginBottom: "16px" }}>
-                                {formState.roomTypes.map((r, i) => (
-                                    <div key={i} style={{ padding: "8px 16px", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "20px", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "8px", fontWeight: 500 }}>
-                                        {r.type} ({r.available}) — ₹{r.price}
-                                        <button type="button" onClick={() => formState.setRoomTypes(formState.roomTypes.filter((_, idx) => idx !== i))} style={{ border: "none", background: "none", color: "var(--text-secondary)", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center" }}>✕</button>
-                                    </div>
-                                ))}
-                            </div>
-                            <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", maxWidth: "600px" }}>
-                                <div style={{ flex: 1 }}>
-                                    <select 
-                                        value={formState.newRoom.type} 
-                                        onChange={(e) => formState.setNewRoom({...formState.newRoom, type: e.target.value})}
-                                        style={{ width: "100%", padding: "12px", background: "#fff", border: "1px solid var(--border)", borderRadius: "var(--radius)", color: "var(--text)", fontSize: "1rem" }}
-                                    >
-                                        <option>Single</option>
-                                        <option>Double</option>
-                                        <option>Triple</option>
-                                    </select>
-                                </div>
-                                <div style={{ width: "120px" }}>
-                                    <Input placeholder="Price" type="number" value={formState.newRoom.price || ""} onChange={(e) => formState.setNewRoom({...formState.newRoom, price: +e.target.value})} style={{ marginBottom: 0 }} />
-                                </div>
-                                <Button type="button" variant="outline" onClick={() => { if (formState.newRoom.price > 0) { formState.setRoomTypes([...formState.roomTypes, formState.newRoom]); formState.setNewRoom({type: "Single", available: 1, price: 0}); } }}>Add</Button>
-                            </div>
-                        </div>
-
                         {/* Amenities */}
                         <div>
                             <label style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text)", display: "block", marginBottom: "12px" }}>Amenities</label>
@@ -184,7 +233,7 @@ export default function AddPgPage() {
                                 <Button type="button" variant="outline" onClick={() => { if (formState.newAmenity.trim()) { formState.setAmenities([...formState.amenities, formState.newAmenity.trim()]); formState.setNewAmenity(""); } }}>Add</Button>
                             </div>
                         </div>
-
+ 
                         {/* Landmarks */}
                         <div>
                             <label style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text)", display: "block", marginBottom: "12px" }}>Nearby Landmarks</label>
@@ -202,15 +251,18 @@ export default function AddPgPage() {
                                 <Button type="button" variant="outline" onClick={() => { if (formState.newLandmark.name && formState.newLandmark.distance) { formState.setLandmarks([...formState.landmarks, formState.newLandmark]); formState.setNewLandmark({name: "", distance: ""}); } }}>Add</Button>
                             </div>
                         </div>
-
+ 
                         {/* Rent Agreement */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", maxWidth: "600px" }}>
-                             <Input label="Min duration (months)" type="number" value={formState.minMonths} onChange={(e) => formState.setMinMonths(e.target.value)} />
-                             <Input label="Max duration (months)" type="number" value={formState.maxMonths} onChange={(e) => formState.setMaxMonths(e.target.value)} />
+                        <div>
+                            <label style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text)", display: "block", marginBottom: "12px" }}>Rent Agreement</label>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", maxWidth: "600px" }}>
+                                <Input label="Min duration (months)" type="number" value={formState.minMonths} onChange={(e) => formState.setMinMonths(e.target.value)} />
+                                <Input label="Max duration (months)" type="number" value={formState.maxMonths} onChange={(e) => formState.setMaxMonths(e.target.value)} />
+                            </div>
                         </div>
                     </div>
                 </div>
-
+ 
                 <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "32px", marginTop: "16px" }}>
                     <Button 
                         type="submit" 
@@ -241,10 +293,10 @@ export default function AddPgPage() {
                     <p style={{ fontSize: "1.05rem", color: "var(--text-secondary)", marginBottom: "32px" }}>
                         It's easy to get started. Just fill out the details.
                     </p>
-                    <FormContent />
+                    {formContent}
                     <div style={{ height: "60px" }} />
                 </MobileContainer>
-                {formState.success && <SuccessOverlay />}
+                {successOverlay}
             </>
         );
     }
@@ -253,7 +305,7 @@ export default function AddPgPage() {
         <>
             <nav className="navbar">
                 <Link href="/" className="logo">PGXplore</Link>
-                <Link href="/add-pg">
+                <Link href="/owner/add-pg">
                     <Button size="sm">List your PG</Button>
                 </Link>
             </nav>
@@ -261,9 +313,9 @@ export default function AddPgPage() {
                 title="List your PG" 
                 subtitle="Reach thousands of students searching for verified homes near campus."
             >
-                <FormContent />
+                {formContent}
             </DesktopFormLayout>
-            {formState.success && <SuccessOverlay />}
+            {successOverlay}
         </>
     );
 }

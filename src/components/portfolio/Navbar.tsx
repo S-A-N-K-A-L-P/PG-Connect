@@ -1,21 +1,46 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Container } from "./Container";
 import { Logo } from "./Logo";
 import { Button } from "../ui/Button";
+import { useSession, signOut } from "next-auth/react";
 
 export const Navbar: React.FC = () => {
+  const { data: session, status } = useSession();
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
+    
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", checkMobile);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", checkMobile);
+    };
   }, []);
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/" });
+  };
+
+  const navLinkStyle: React.CSSProperties = {
+    textDecoration: "none",
+    color: "var(--text)",
+    fontWeight: 600,
+    fontSize: "0.95rem",
+    transition: "color 0.2s",
+  };
 
   return (
     <nav style={{
@@ -33,41 +58,33 @@ export const Navbar: React.FC = () => {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Logo />
           
-          <div style={{ display: "flex", alignItems: "center", gap: "32px" }} className="nav-links">
-            <style jsx>{`
-              @media (max-width: 768px) {
-                .nav-links {
-                  display: none !important;
-                }
-              }
-              .nav-link {
-                text-decoration: none;
-                color: var(--text);
-                font-weight: 600;
-                font-size: 0.95rem;
-                transition: color 0.2s;
-              }
-              .nav-link:hover {
-                color: var(--primary);
-              }
-            `}</style>
-            <Link href="/" className="nav-link">Home</Link>
-            <Link href="#explore" className="nav-link">Browse PGs</Link>
-            <Link href="#how-it-works" className="nav-link">How it Works</Link>
-            <Link href="#about" className="nav-link">About</Link>
-            <Link href="/add-pg">
-              <Button variant="primary" size="sm">List Property</Button>
-            </Link>
+          <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: "32px" }}>
+            <Link href="/" style={navLinkStyle}>Home</Link>
+            <Link href="/owner/dashboard" style={navLinkStyle}>Dashboard</Link>
+            <Link href="#explore" style={navLinkStyle}>Browse PGs</Link>
+            <Link href="#how-it-works" style={navLinkStyle}>How it Works</Link>
+            <Link href="#about" style={navLinkStyle}>About</Link>
+            
+            {mounted && status === "authenticated" && session?.user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <Link href={(session.user as any).role === "PG_OWNER" ? "/owner/dashboard" : "/"} style={{ textDecoration: "none", color: "var(--text)", fontWeight: 700 }}>
+                  Hi, {session.user.name?.split(" ")[0]} 👋
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>
+              </div>
+            ) : (
+              <>
+                <Link href="/owner/add-pg">
+                  <Button size="sm">List your PG</Button>
+                </Link>
+                <Link href="/login">
+                  <Button variant="primary" size="sm">Login</Button>
+                </Link>
+              </>
+            )}
           </div>
 
-          <Button variant="ghost" className="mobile-menu" style={{ display: "none" }}>
-             <style jsx>{`
-              @media (max-width: 768px) {
-                .mobile-menu {
-                  display: block !important;
-                }
-              }
-            `}</style>
+          <Button variant="ghost" style={{ display: isMobile ? "block" : "none" }}>
             ☰
           </Button>
         </div>

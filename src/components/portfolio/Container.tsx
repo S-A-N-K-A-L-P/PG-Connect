@@ -29,7 +29,8 @@ export const Container: React.FC<ContainerProps> = ({
       style={{
         maxWidth: maxWeights[size],
         margin: "0 auto",
-        padding: "0 24px",
+        paddingLeft: "24px",
+        paddingRight: "24px",
         width: "100%",
         ...style,
       }}

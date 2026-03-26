@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Container } from "./Container";
 import { HeroStats } from "@/components/portfolio/HeroStats";
@@ -56,8 +57,12 @@ export const Hero: React.FC = () => {
           </p>
           
           <div style={{ display: "flex", gap: "16px", marginBottom: "60px", flexWrap: "wrap", justifyContent: "center" }}>
-            <Button size="lg">🔴 Find PG Near You</Button>
-            <Button variant="outline" size="lg">⚪ List Your Property</Button>
+            <Link href="/login">
+              <Button size="lg">🔴 Find PG Near You</Button>
+            </Link>
+            <Link href="/add-pg">
+              <Button variant="outline" size="lg">⚪ List Your Property</Button>
+            </Link>
           </div>
 
           <HeroStats />

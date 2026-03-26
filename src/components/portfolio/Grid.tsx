@@ -21,29 +21,35 @@ export const Grid: React.FC<GridProps> = ({
   className = "",
   style,
 }) => {
+  const [layout, setLayout] = React.useState({ columns: cols, currentGap: gap });
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width <= 768) {
+        setLayout({ columns: mobileCols, currentGap: 20 });
+      } else if (width <= 1024) {
+        setLayout({ columns: tabletCols, currentGap: gap });
+      } else {
+        setLayout({ columns: cols, currentGap: gap });
+      }
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [cols, gap, mobileCols, tabletCols]);
+
   return (
     <div
-      className={`${className} responsive-grid`}
+      className={className}
       style={{
         display: "grid",
-        gap: `${gap}px`,
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gap: `${layout.currentGap}px`,
+        gridTemplateColumns: `repeat(${layout.columns}, 1fr)`,
         ...style,
       }}
     >
-      <style jsx>{`
-        @media (max-width: 1024px) {
-          .responsive-grid {
-            grid-template-columns: repeat(${tabletCols}, 1fr) !important;
-          }
-        }
-        @media (max-width: 768px) {
-          .responsive-grid {
-            grid-template-columns: repeat(${mobileCols}, 1fr) !important;
-            gap: 20px !important;
-          }
-        }
-      `}</style>
       {children}
     </div>
   );

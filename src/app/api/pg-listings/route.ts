@@ -1,97 +1,55 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getDb } from "@/lib/mongodb";
-
-// GET /api/pg-listings — list with filters
-export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const city = searchParams.get("city");
-    const area = searchParams.get("area");
-    const minRent = searchParams.get("minRent");
-    const maxRent = searchParams.get("maxRent");
-    const search = searchParams.get("search");
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "10");
-
-    const db = await getDb();
-    const col = db.collection("pg_listings");
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filter: any = {};
-    if (city) filter.City = city;
-    if (area) filter.Area = area;
-    if (minRent) filter.Rent = { ...filter.Rent, $gte: parseFloat(minRent) };
-    if (maxRent) filter.Rent = { ...filter.Rent, $lte: parseFloat(maxRent) };
-    if (search) {
-        filter.$or = [
-            { Title: { $regex: search, $options: "i" } },
-            { Description: { $regex: search, $options: "i" } },
-            { Address: { $regex: search, $options: "i" } },
-        ];
+import { PgListing } from "@/models/PgListing";
+import crypto from "crypto";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+ 
+export async function GET(req: Request) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const ownerId = searchParams.get("ownerId");
+        
+        const db = await getDb();
+        const pgCol = db.collection("pg-listings");
+ 
+        const query = ownerId ? { OwnerId: ownerId } : {};
+        const listings = await pgCol.find(query).sort({ CreatedAt: -1 }).toArray();
+ 
+        return NextResponse.json(listings);
+    } catch (err: any) {
+        return NextResponse.json({ error: "Server Error" }, { status: 500 });
     }
-
-    const totalCount = await col.countDocuments(filter);
-    const items = await col
-        .find(filter)
-        .sort({ CreatedAt: -1 })
-        .skip((page - 1) * pageSize)
-        .limit(pageSize)
-        .toArray();
-
-    // Map _id to Id for frontend compatibility
-    const mapped = items.map((doc) => ({
-        Id: doc._id.toString(),
-        Title: doc.Title,
-        Description: doc.Description,
-        Address: doc.Address,
-        City: doc.City,
-        Area: doc.Area,
-        Rent: doc.Rent,
-        SecurityDeposit: doc.SecurityDeposit,
-        RoomTypes: doc.RoomTypes || [],
-        Amenities: doc.Amenities || [],
-        Equipment: doc.Equipment || [],
-        NearbyLandmarks: doc.NearbyLandmarks || [],
-        Images: doc.Images || [],
-        RentAgreement: doc.RentAgreement || {},
-        ContactPhone: doc.ContactPhone || "",
-        ContactEmail: doc.ContactEmail || "",
-        IsVerified: doc.IsVerified || false,
-        PostedBy: doc.PostedBy || "",
-        CreatedAt: doc.CreatedAt,
-    }));
-
-    return NextResponse.json({ Items: mapped, TotalCount: totalCount, Page: page, PageSize: pageSize });
 }
-
-// POST /api/pg-listings — create a new listing
-export async function POST(req: NextRequest) {
-    const body = await req.json();
-    const db = await getDb();
-    const col = db.collection("pg_listings");
-
-    const doc = {
-        Title: body.Title || "",
-        Description: body.Description || "",
-        Address: body.Address || "",
-        City: body.City || "",
-        Area: body.Area || "",
-        Rent: body.Rent || 0,
-        SecurityDeposit: body.SecurityDeposit || 0,
-        RoomTypes: body.RoomTypes || [],
-        Amenities: body.Amenities || [],
-        Equipment: body.Equipment || [],
-        NearbyLandmarks: body.NearbyLandmarks || [],
-        Images: body.Images || [], // Cloudinary URLs passed from frontend
-        RentAgreement: body.RentAgreement || { MinMonths: 1, MaxMonths: 12, Conditions: "" },
-        ContactPhone: body.ContactPhone || "",
-        ContactEmail: body.ContactEmail || "",
-        IsVerified: false,
-        PostedBy: body.PostedBy || "anonymous",
-        CreatedAt: new Date(),
-        UpdatedAt: new Date(),
-    };
-
-    const result = await col.insertOne(doc);
-
-    return NextResponse.json({ Id: result.insertedId.toString(), ...doc }, { status: 201 });
+ 
+export async function POST(req: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        console.log("POST /api/pg-listings - Session found:", !!session);
+ 
+        if (!session || (session.user as any).role !== "PG_OWNER") {
+            console.log("POST /api/pg-listings - Unauthorized access attempt. Session:", JSON.stringify(session?.user || "null"));
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+ 
+        const body = await req.json();
+        const db = await getDb();
+        const pgCol = db.collection("pg-listings");
+ 
+        const newListing: PgListing = {
+            ...body,
+            OwnerId: (session.user as any).id,
+            Id: crypto.randomUUID(),
+            CreatedAt: new Date(),
+            UpdatedAt: new Date(),
+            IsVerified: false,
+            IsAcceptingGuests: true
+        };
+ 
+        await pgCol.insertOne(newListing);
+ 
+        return NextResponse.json({ success: true, id: newListing.Id });
+    } catch (err: any) {
+        return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    }
 }

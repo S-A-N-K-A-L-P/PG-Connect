@@ -28,7 +28,8 @@ export const Section: React.FC<SectionProps> = ({
       id={id}
       className={className}
       style={{
-        padding: "80px 0",
+        paddingTop: "80px",
+        paddingBottom: "80px",
         background: bgStyles[background],
         width: "100%",
         ...style,
