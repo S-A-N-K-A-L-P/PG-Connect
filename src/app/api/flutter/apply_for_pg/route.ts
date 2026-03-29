@@ -15,11 +15,14 @@ export async function POST(req: Request) {
         const db = await getDb();
         const appCol = db.collection("applications");
 
+        const appId = `app_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        console.log("Submitting application:", { appId, GuestId, PgId });
+
         const newApp: PgApplication = {
-            Id: crypto.randomUUID(),
+            Id: appId,
             GuestId,
             PgId,
-            FloorNumber: FloorNumber ? parseInt(FloorNumber) : undefined,
+            FloorNumber: FloorNumber ? parseInt(FloorNumber.toString()) : undefined,
             RoomId,
             Conditions: Conditions || "Applied via Mobile",
             Status: "PENDING",
