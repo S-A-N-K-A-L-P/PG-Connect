@@ -37,6 +37,34 @@ export async function POST(req: Request) {
         };
 
         await userCol.insertOne(newUser);
+        console.log("[REGISTER] User inserted into MongoDB:", email);
+
+        // SYNC WITH .NET BACKEND
+        try {
+            console.log("[REGISTER] Attempting to sync with .NET Backend...");
+            const backendRes = await fetch("http://localhost:5003/api/v1/auth/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password,
+                    role: role === "PG_OWNER" ? "PG_OWNER" : "PayingGuest", // Map role if necessary
+                    phoneNumber: phone,
+                    permanentAddress: permanentAddress
+                }),
+            });
+
+            if (backendRes.ok) {
+                console.log("[REGISTER] .NET Backend sync successful");
+            } else {
+                const backendError = await backendRes.text();
+                console.warn("[REGISTER] .NET Backend sync failed:", backendRes.status, backendError);
+            }
+        } catch (syncErr) {
+            console.error("[REGISTER] Critical Error syncing with .NET Backend:", syncErr);
+            // We still return success since they are in MongoDB, but warn in logs
+        }
 
         return NextResponse.json({ success: true, user: { name: newUser.Name, email: newUser.Email, role: newUser.Role } });
     } catch (err: any) {

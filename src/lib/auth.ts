@@ -12,22 +12,75 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) return null;
+                console.log("[AUTH] Authorize attempt for:", credentials?.email);
+                if (!credentials?.email || !credentials?.password) {
+                    console.log("[AUTH] Missing credentials");
+                    return null;
+                }
 
-                const db = await getDb();
-                const user = await db.collection("users").findOne({ Email: credentials.email });
+                try {
+                    const db = await getDb();
+                    console.log("[AUTH] Connected to MongoDB, searching for user in 'users' collection...");
+                    const user = await db.collection("users").findOne({ Email: credentials.email });
 
-                if (!user || !user.PasswordHash) return null;
+                    if (!user) {
+                        console.log("[AUTH] User not found in MongoDB. Attempting fallback to .NET Backend API...");
+                        try {
+                            const res = await fetch("http://localhost:5003/api/v1/auth/login", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ email: credentials.email, password: credentials.password })
+                            });
 
-                const isValid = await bcrypt.compare(credentials.password, user.PasswordHash);
-                if (!isValid) return null;
+                            if (!res.ok) {
+                                console.log("[AUTH] .NET Backend login failed with status:", res.status);
+                                return null;
+                            }
 
-                return {
-                    id: user.Id,
-                    name: user.Name,
-                    email: user.Email,
-                    role: user.Role
-                };
+                            const data = await res.json();
+                            console.log("[AUTH] .NET Backend login SUCCESS for role:", data.role);
+
+                            // Normalize roles from .NET to Next.js
+                            let role = "PAYING_GUEST";
+                            if (data.role === "PropertyOwner" || data.role === "PG_OWNER") role = "PG_OWNER";
+                            if (data.role === "Admin" || data.role === "ADMIN") role = "ADMIN";
+
+                            return {
+                                id: credentials.email, 
+                                name: credentials.email.split("@")[0], 
+                                email: credentials.email,
+                                role: role
+                            };
+                        } catch (apiError) {
+                            console.error("[AUTH] Failed to reach .NET Backend:", apiError);
+                            return null;
+                        }
+                    }
+
+                    if (!user.PasswordHash) {
+                        console.log("[AUTH] User found but missing PasswordHash");
+                        return null;
+                    }
+
+                    console.log("[AUTH] User found, verifying password...");
+                    const isValid = await bcrypt.compare(credentials.password, user.PasswordHash);
+                    
+                    if (!isValid) {
+                        console.log("[AUTH] Invalid password for user:", credentials.email);
+                        throw new Error("CredentialsSignin"); // Specific code for invalid password
+                    }
+
+                    console.log("[AUTH] Auth successful for:", user.Email, "Role:", user.Role);
+                    return {
+                        id: user.Id,
+                        name: user.Name || user.Email.split("@")[0],
+                        email: user.Email,
+                        role: user.Role
+                    };
+                } catch (error) {
+                    console.error("[AUTH] Error during authorize:", error);
+                    return null;
+                }
             }
         })
     ],

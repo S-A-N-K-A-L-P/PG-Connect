@@ -30,12 +30,19 @@ export default function LoginPage() {
             });
 
             if (res?.error) {
-                setError("Invalid email or password");
+                console.log("[LOGIN] SignIn failed:", res.error);
+                if (res.error === "CredentialsSignin") {
+                    setError("Invalid email or password. Please try again.");
+                } else {
+                    setError(res.error || "Authentication failed");
+                }
             } else {
+                console.log("[LOGIN] SignIn successful, fetching session...");
                 // Fetch session to check role and redirect
                 const sessionRes = await fetch("/api/auth/session");
                 const session = await sessionRes.json();
                 
+                console.log("[LOGIN] Session user role:", session?.user?.role);
                 if (session?.user?.role === "PG_OWNER") {
                     router.push("/owner/dashboard");
                 } else {
@@ -43,6 +50,7 @@ export default function LoginPage() {
                 }
             }
         } catch (err) {
+            console.error("[LOGIN] Exception during handleSubmit:", err);
             setError("Something went wrong. Please try again.");
         } finally {
             setLoading(false);
