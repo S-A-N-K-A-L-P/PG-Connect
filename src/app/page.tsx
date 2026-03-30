@@ -72,6 +72,7 @@ export default function LandingPage() {
               <CategoryPill label="All Stays" active />
               <CategoryPill label="Near Plaksha" />
               <CategoryPill label="Near Ashoka" />
+              <CategoryPill label="Near Amity" />
               <CategoryPill label="With Food" />
             </div>
           </div>
