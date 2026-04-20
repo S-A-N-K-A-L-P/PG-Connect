@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Navbar } from "@/components/portfolio/Navbar";
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const registered = searchParams.get("registered") === "true";
@@ -40,11 +40,9 @@ export default function LoginPage() {
                 }
             } else {
                 console.log("[LOGIN] SignIn successful, fetching session...");
-                // Fetch session to check role and redirect
                 const sessionRes = await fetch("/api/auth/session");
                 const session = await sessionRes.json();
                 
-                console.log("[LOGIN] Session user role:", session?.user?.role);
                 if (session?.user?.role === "PG_OWNER") {
                     router.push("/owner/dashboard");
                 } else {
@@ -60,6 +58,53 @@ export default function LoginPage() {
     };
 
     return (
+        <Card padding="40px" shadow="lg" style={{ borderRadius: "24px" }}>
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                {registered && !error && (
+                    <div style={{ padding: "12px", background: "rgba(16, 185, 129, 0.1)", color: "#10b981", borderRadius: "12px", fontSize: "0.9rem", textAlign: "center", border: "1px solid rgba(16, 185, 129, 0.2)", marginBottom: "8px" }}>
+                        🎉 Account created successfully! Please sign in.
+                    </div>
+                )}
+                {error && (
+                    <div style={{ padding: "12px", background: "#fef2f2", color: "#dc2626", borderRadius: "12px", fontSize: "0.9rem", textAlign: "center", border: "1px solid #fee2e2" }}>
+                        {error}
+                    </div>
+                )}
+                
+                <Input 
+                    label="Email Address" 
+                    type="email" 
+                    placeholder="name@university.edu" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                />
+                
+                <Input 
+                    label="Password" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                />
+
+                <Button type="submit" size="lg" fullWidth shadow="lg" disabled={loading} style={{ marginTop: "12px" }}>
+                    {loading ? "Signing in..." : "Continue to Dashboard"}
+                </Button>
+
+                <div style={{ textAlign: "center", marginTop: "12px" }}>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                        Don't have an account? <Link href="/register" style={{ color: "var(--primary)", fontWeight: 600 }}>Register here</Link>
+                    </p>
+                </div>
+            </form>
+        </Card>
+    );
+}
+
+export default function LoginPage() {
+    return (
         <main style={{ minHeight: "100vh", background: "white" }}>
             <Navbar />
             
@@ -73,48 +118,9 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                <Card padding="40px" shadow="lg" style={{ borderRadius: "24px" }}>
-                    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                        {registered && !error && (
-                            <div style={{ padding: "12px", background: "rgba(16, 185, 129, 0.1)", color: "#10b981", borderRadius: "12px", fontSize: "0.9rem", textAlign: "center", border: "1px solid rgba(16, 185, 129, 0.2)", marginBottom: "8px" }}>
-                                🎉 Account created successfully! Please sign in.
-                            </div>
-                        )}
-                        {error && (
-                            <div style={{ padding: "12px", background: "#fef2f2", color: "#dc2626", borderRadius: "12px", fontSize: "0.9rem", textAlign: "center", border: "1px solid #fee2e2" }}>
-                                {error}
-                            </div>
-                        )}
-                        
-                        <Input 
-                            label="Email Address" 
-                            type="email" 
-                            placeholder="name@university.edu" 
-                            value={email} 
-                            onChange={(e) => setEmail(e.target.value)} 
-                            required 
-                        />
-                        
-                        <Input 
-                            label="Password" 
-                            type="password" 
-                            placeholder="••••••••" 
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)} 
-                            required 
-                        />
-
-                        <Button type="submit" size="lg" fullWidth shadow="lg" disabled={loading} style={{ marginTop: "12px" }}>
-                            {loading ? "Signing in..." : "Continue to Dashboard"}
-                        </Button>
-
-                        <div style={{ textAlign: "center", marginTop: "12px" }}>
-                            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-                                Don't have an account? <Link href="/register" style={{ color: "var(--primary)", fontWeight: 600 }}>Register here</Link>
-                            </p>
-                        </div>
-                    </form>
-                </Card>
+                <Suspense fallback={<div>Loading form...</div>}>
+                    <LoginForm />
+                </Suspense>
 
                 <p style={{ textAlign: "center", marginTop: "40px", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
                     By continuing, you agree to our Terms of Service and Privacy Policy.
