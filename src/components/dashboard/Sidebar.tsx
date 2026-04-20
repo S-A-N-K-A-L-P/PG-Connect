@@ -11,9 +11,11 @@ import {
     PlusCircle,
     ChevronLeft,
     ChevronRight,
-    LogOut
+    LogOut,
+    Home,
+    CreditCard
 } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -22,14 +24,25 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
     const pathname = usePathname();
+    const { data: session } = useSession();
+    const role = (session?.user as any)?.role;
 
-    const menuItems = [
-        { name: "Overview", icon: <LayoutDashboard size={20} />, href: "/owner/dashboard" },
-        { name: "Properties", icon: <Building2 size={20} />, href: "/owner/dashboard/properties" },
-        { name: "Applications", icon: <FileText size={20} />, href: "/owner/dashboard/applications" },
+    const ownerItems = [
+        { name: "Overview", icon: <LayoutDashboard size={20} />, href: "/dashboard/pg-owner" },
+        { name: "Properties", icon: <Building2 size={20} />, href: "/dashboard/pg-owner/properties" },
+        { name: "Applications", icon: <FileText size={20} />, href: "/dashboard/pg-owner/applications" },
         { name: "Add Property", icon: <PlusCircle size={20} />, href: "/owner/add-pg" },
-        { name: "Settings", icon: <Settings size={20} />, href: "/owner/dashboard/settings" },
+        { name: "Settings", icon: <Settings size={20} />, href: "/dashboard/pg-owner/settings" },
     ];
+
+    const guestItems = [
+        { name: "My Stay", icon: <Home size={20} />, href: "/dashboard/paying-guest" },
+        { name: "Applications", icon: <FileText size={20} />, href: "/dashboard/paying-guest/applications" },
+        { name: "Payments", icon: <CreditCard size={20} />, href: "/dashboard/paying-guest/payments" },
+        { name: "Settings", icon: <Settings size={20} />, href: "/dashboard/paying-guest/settings" },
+    ];
+
+    const menuItems = role === "PG_OWNER" ? ownerItems : guestItems;
 
     const isActive = (path: string) => pathname === path;
 

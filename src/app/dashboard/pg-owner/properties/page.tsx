@@ -95,7 +95,7 @@ export default async function PropertiesPage() {
                                     </div>
                                 </div>
 
-                                <Link href={`/owner/dashboard/${pg.Id}`}>
+                                <Link href={`/dashboard/pg-owner/${pg.Id}`}>
                                     <Button fullWidth variant="outline" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                                         View Details <ArrowUpRight size={16} />
                                     </Button>

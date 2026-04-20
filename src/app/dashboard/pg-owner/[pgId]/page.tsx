@@ -43,7 +43,7 @@ export default async function PgDetailPage({ params }: { params: { pgId: string 
     return (
         <div>
             <div style={{ marginBottom: "32px" }}>
-                <Link href="/owner/dashboard" style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", textDecoration: "none", marginBottom: "16px", fontWeight: 600 }}>
+                <Link href="/dashboard/pg-owner" style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", textDecoration: "none", marginBottom: "16px", fontWeight: 600 }}>
                     <ChevronLeft size={20} /> Back to Dashboard
                 </Link>
                 

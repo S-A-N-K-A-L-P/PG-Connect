@@ -10,7 +10,14 @@ export default async function DashboardLayout({
 }) {
     const session = await getServerSession(authOptions);
 
-    if (!session || (session.user as any).role !== "PG_OWNER") {
+    if (!session) {
+        redirect("/login");
+    }
+
+    const role = (session.user as any).role;
+    const allowedRoles = ["PG_OWNER", "PAYING_GUEST", "ADMIN"];
+
+    if (!allowedRoles.includes(role)) {
         redirect("/login");
     }
 

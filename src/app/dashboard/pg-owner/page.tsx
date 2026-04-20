@@ -108,7 +108,7 @@ export default async function OwnerDashboard() {
                                     <span style={{ fontWeight: 700 }}>{pgOccupied} / {pgTotal} beds</span>
                                 </div>
 
-                                <Link href={`/owner/dashboard/${pg.Id}`}>
+                                <Link href={`/dashboard/pg-owner/${pg.Id}`}>
                                     <Button fullWidth variant="outline" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                                         Manage Property <ArrowUpRight size={16} />
                                     </Button>
