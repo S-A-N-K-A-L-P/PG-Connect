@@ -6,7 +6,7 @@ import { getOwnerPgs, getOwnerApplications } from "@/lib/data";
 import { Container } from "@/components/portfolio/Container";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Building2, Users, ArrowUpRight } from "lucide-react";
+import { Building2, Users, ArrowUpRight, FileText } from "lucide-react";
 
 export default async function OwnerDashboard() {
     const session = await getServerSession(authOptions);
