@@ -53,9 +53,9 @@ export default function RegisterPage() {
 
             setSuccess(true);
             
-            // REDIRECTION LOGIC (Now requiring manual login for security or auto-signin)
+            // REDIRECTION LOGIC
             setTimeout(() => {
-                router.push("/login");
+                router.push("/login?registered=true");
             }, 3000);
         } catch (err: any) {
             setError(err.message);

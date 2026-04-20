@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Container } from "@/components/portfolio/Container";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -12,6 +12,8 @@ import { Navbar } from "@/components/portfolio/Navbar";
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const registered = searchParams.get("registered") === "true";
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -73,6 +75,11 @@ export default function LoginPage() {
 
                 <Card padding="40px" shadow="lg" style={{ borderRadius: "24px" }}>
                     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                        {registered && !error && (
+                            <div style={{ padding: "12px", background: "rgba(16, 185, 129, 0.1)", color: "#10b981", borderRadius: "12px", fontSize: "0.9rem", textAlign: "center", border: "1px solid rgba(16, 185, 129, 0.2)", marginBottom: "8px" }}>
+                                🎉 Account created successfully! Please sign in.
+                            </div>
+                        )}
                         {error && (
                             <div style={{ padding: "12px", background: "#fef2f2", color: "#dc2626", borderRadius: "12px", fontSize: "0.9rem", textAlign: "center", border: "1px solid #fee2e2" }}>
                                 {error}
