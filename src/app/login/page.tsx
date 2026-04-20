@@ -44,7 +44,9 @@ function LoginForm() {
                 const session = await sessionRes.json();
                 
                 if (session?.user?.role === "PG_OWNER") {
-                    router.push("/owner/dashboard");
+                    router.push("/dashboard/pg-owner");
+                } else if (session?.user?.role === "PAYING_GUEST") {
+                    router.push("/dashboard/paying-guest");
                 } else {
                     router.push("/");
                 }

@@ -21,3 +21,10 @@ export async function getOwnerApplications(ownerId: string) {
     const applications = await appCol.find({ OwnerId: ownerId }).sort({ CreatedAt: -1 }).toArray();
     return applications as unknown as PgApplication[];
 }
+
+export async function getGuestApplications(guestId: string) {
+    const db = await getDb();
+    const appCol = db.collection("applications");
+    const applications = await appCol.find({ GuestId: guestId }).sort({ CreatedAt: -1 }).toArray();
+    return applications as unknown as PgApplication[];
+}

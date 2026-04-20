@@ -5,24 +5,29 @@ export default withAuth(
     function middleware(req) {
         const token = req.nextauth.token;
         const isAuth = !!token;
-        const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/register");
+        const pathname = req.nextUrl.pathname;
+        const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
 
         if (isAuthPage) {
             if (isAuth) {
-                // Already authenticated, redirect to appropriate dashboard
                 const role = (token as any).role;
                 if (role === "PG_OWNER") {
-                    return NextResponse.redirect(new URL("/owner/dashboard", req.url));
+                    return NextResponse.redirect(new URL("/dashboard/pg-owner", req.url));
+                } else if (role === "PAYING_GUEST") {
+                    return NextResponse.redirect(new URL("/dashboard/paying-guest", req.url));
                 }
                 return NextResponse.redirect(new URL("/", req.url));
             }
             return NextResponse.next();
         }
 
-        // Role-based protection for owner routes
-        const isOwnerRoute = req.nextUrl.pathname.startsWith("/owner");
-        if (isOwnerRoute && (token as any).role !== "PG_OWNER") {
-            return NextResponse.redirect(new URL("/", req.url));
+        // Role-based protection for the unified dashboard
+        if (pathname.startsWith("/dashboard/pg-owner") && (token as any).role !== "PG_OWNER") {
+            return NextResponse.redirect(new URL("/dashboard/paying-guest", req.url));
+        }
+
+        if (pathname.startsWith("/dashboard/paying-guest") && (token as any).role !== "PAYING_GUEST") {
+            return NextResponse.redirect(new URL("/dashboard/pg-owner", req.url));
         }
 
         return NextResponse.next();
@@ -31,8 +36,7 @@ export default withAuth(
         callbacks: {
             authorized: ({ token, req }) => {
                 const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/register");
-                if (isAuthPage) return true; // Handled in logic above
-                
+                if (isAuthPage) return true;
                 return !!token;
             },
         },
@@ -43,5 +47,5 @@ export default withAuth(
 );
 
 export const config = {
-    matcher: ["/owner/:path*", "/login", "/register"],
+    matcher: ["/dashboard/:path*", "/login", "/register"],
 };
