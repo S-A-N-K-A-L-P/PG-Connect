@@ -60,14 +60,9 @@ export const Navbar: React.FC = () => {
           
           <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: "32px" }}>
             <Link href="/" style={navLinkStyle}>Home</Link>
-            <Link href="/owner/dashboard" style={navLinkStyle}>Dashboard</Link>
-            <Link href="#explore" style={navLinkStyle}>Browse PGs</Link>
-            <Link href="#how-it-works" style={navLinkStyle}>How it Works</Link>
-            <Link href="#about" style={navLinkStyle}>About</Link>
-            
             {mounted && status === "authenticated" && session?.user ? (
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <Link href={(session.user as any).role === "PG_OWNER" ? "/owner/dashboard" : "/"} style={{ textDecoration: "none", color: "var(--text)", fontWeight: 700 }}>
+                <Link href={(session.user as any).role === "PG_OWNER" ? "/dashboard/pg-owner" : "/dashboard/paying-guest"} style={{ textDecoration: "none", color: "var(--text)", fontWeight: 700 }}>
                   Hi, {session.user.name?.split(" ")[0]} 👋
                 </Link>
                 <Button variant="outline" size="sm" onClick={handleLogout}>Logout</Button>

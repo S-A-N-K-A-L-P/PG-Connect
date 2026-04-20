@@ -20,7 +20,7 @@ export default async function PgDetailPage({ params }: { params: { pgId: string 
     ]);
 
     if (!pg) return notFound();
-    if (pg.OwnerId !== userId) redirect("/owner/dashboard");
+    if (pg.OwnerId !== userId) redirect("/dashboard/pg-owner");
 
     const pgApplications = applications.filter(a => a.PgId === pgId);
     
