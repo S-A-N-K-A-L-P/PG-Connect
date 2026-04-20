@@ -25,7 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed })
 
     const menuItems = [
         { name: "Overview", icon: <LayoutDashboard size={20} />, href: "/owner/dashboard" },
-        { name: "My Properties", icon: <Building2 size={20} />, href: "/owner/dashboard/properties" },
+        { name: "Properties", icon: <Building2 size={20} />, href: "/owner/dashboard/properties" },
         { name: "Applications", icon: <FileText size={20} />, href: "/owner/dashboard/applications" },
         { name: "Add Property", icon: <PlusCircle size={20} />, href: "/owner/add-pg" },
         { name: "Settings", icon: <Settings size={20} />, href: "/owner/dashboard/settings" },
