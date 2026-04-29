@@ -38,7 +38,7 @@ export default async function OwnerDashboard() {
                     <h1 style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text)", marginBottom: "8px" }}>Dashboard Overview</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Track your portfolio performance and guest requests.</p>
                 </div>
-                <Link href="/owner/add-pg">
+                <Link href="/dashboard/pg-owner/add-pg">
                     <Button size="lg">+ Add Property</Button>
                 </Link>
             </div>

@@ -31,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed })
         { name: "Overview", icon: <LayoutDashboard size={20} />, href: "/dashboard/pg-owner" },
         { name: "Properties", icon: <Building2 size={20} />, href: "/dashboard/pg-owner/properties" },
         { name: "Applications", icon: <FileText size={20} />, href: "/dashboard/pg-owner/applications" },
-        { name: "Add Property", icon: <PlusCircle size={20} />, href: "/owner/add-pg" },
+        { name: "Add Property", icon: <PlusCircle size={20} />, href: "/dashboard/pg-owner/add-pg" },
         { name: "Settings", icon: <Settings size={20} />, href: "/dashboard/pg-owner/settings" },
     ];
 
