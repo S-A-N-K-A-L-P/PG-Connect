@@ -60,6 +60,70 @@ export const Navbar: React.FC = () => {
           
           <div style={{ display: isMobile ? "none" : "flex", alignItems: "center", gap: "32px" }}>
             <Link href="/" style={navLinkStyle}>Home</Link>
+            
+            {/* Explore More Dropdown */}
+            <div style={{ position: "relative", display: "flex", alignItems: "center", cursor: "pointer", group: "explore" }}
+                 onMouseEnter={(e) => {
+                   const dropdown = e.currentTarget.querySelector('.dropdown-menu');
+                   if (dropdown) (dropdown as HTMLElement).style.display = 'block';
+                   if (dropdown) (dropdown as HTMLElement).style.opacity = '1';
+                   if (dropdown) (dropdown as HTMLElement).style.transform = 'translateY(0)';
+                 }}
+                 onMouseLeave={(e) => {
+                   const dropdown = e.currentTarget.querySelector('.dropdown-menu');
+                   if (dropdown) (dropdown as HTMLElement).style.display = 'none';
+                   if (dropdown) (dropdown as HTMLElement).style.opacity = '0';
+                   if (dropdown) (dropdown as HTMLElement).style.transform = 'translateY(10px)';
+                 }}
+            >
+              <span style={{ ...navLinkStyle, display: "flex", alignItems: "center", gap: "4px" }}>
+                Explore More
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </span>
+              <div 
+                className="dropdown-menu"
+                style={{ 
+                  position: "absolute", 
+                  top: "100%", 
+                  left: "-20px", 
+                  background: "white", 
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.1)", 
+                  borderRadius: "16px", 
+                  padding: "16px",
+                  width: "280px",
+                  display: "none",
+                  opacity: 0,
+                  transform: "translateY(10px)",
+                  transition: "all 0.2s ease",
+                  border: "1px solid rgba(0,0,0,0.05)",
+                  marginTop: "16px"
+                }}
+              >
+                {[
+                  { name: "Student Experience", id: "#experience" },
+                  { name: "Creator Economy", id: "#creator" },
+                  { name: "Vendor & Delivery System", id: "#ops" },
+                  { name: "Smart Supply Chain (AI)", id: "#ai" },
+                  { name: "Campus Ecosystem", id: "#campus" }
+                ].map(item => (
+                  <Link key={item.name} href={item.id} style={{ 
+                    display: "block", 
+                    padding: "12px 16px", 
+                    textDecoration: "none", 
+                    color: "var(--text)", 
+                    fontWeight: 600, 
+                    fontSize: "0.9rem",
+                    borderRadius: "8px",
+                    transition: "background 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
             {mounted && status === "authenticated" && session?.user ? (
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 <Link href={(session.user as any).role === "PG_OWNER" ? "/dashboard/pg-owner" : "/dashboard/paying-guest"} style={{ textDecoration: "none", color: "var(--text)", fontWeight: 700 }}>
