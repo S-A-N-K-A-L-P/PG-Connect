@@ -133,7 +133,7 @@ export const Navbar: React.FC = () => {
               </div>
             ) : (
               <>
-                <Link href="/owner/add-pg">
+                <Link href="/dashboard/pg-owner/add-pg">
                   <Button size="sm">List your PG</Button>
                 </Link>
                 <Link href="/login">

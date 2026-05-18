@@ -19,8 +19,8 @@ export default async function PropertiesPage() {
                     <h1 style={{ fontSize: "2rem", fontWeight: 800 }}>My Properties</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Manage your listings and view occupancy details.</p>
                 </div>
-                <Link href="/owner/add-pg">
-                    <Button size="lg">+ Add Property</Button>
+                <Link href="/dashboard/pg-owner/add-pg">
+                    <Button size="lg" disabled={(session?.user as any)?.role !== "PAYING_GUEST"}>+ Add Property</Button>
                 </Link>
             </div>
 
@@ -111,8 +111,8 @@ export default async function PropertiesPage() {
                     <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🏠</div>
                     <h3 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "8px" }}>No properties listed yet</h3>
                     <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>Start by adding your first PG property to the dashboard.</p>
-                    <Link href="/owner/add-pg">
-                        <Button>Add Your First Property</Button>
+                    <Link href="/dashboard/pg-owner/add-pg">
+                        <Button disabled={(session?.user as any)?.role !== "PAYING_GUEST"}>Add Your First Property</Button>
                     </Link>
                 </div>
             )}
