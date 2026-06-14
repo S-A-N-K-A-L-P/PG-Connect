@@ -43,7 +43,13 @@ export const AddPgForm: React.FC = () => {
         maxMonths, setMaxMonths,
         conditions, setConditions,
         previews,
-        submitting, error, success
+        submitting, error, success,
+        genderPreference, setGenderPreference,
+        videos, setVideos,
+        videoPreviews, setVideoPreviews,
+        latitude, setLatitude,
+        longitude, setLongitude,
+        googleMapsUrl, setGoogleMapsUrl
     } = formState;
 
     const {
@@ -54,7 +60,10 @@ export const AddPgForm: React.FC = () => {
         removeFloor,
         addRoom,
         updateRoom,
-        removeRoom
+        removeRoom,
+        handleVideoFiles,
+        removeVideo,
+        getCurrentLocation
     } = handlers;
 
     const sectionTitleStyle: React.CSSProperties = {
@@ -124,13 +133,41 @@ export const AddPgForm: React.FC = () => {
                         <Building2 size={20} color="var(--primary)" /> Basic Information
                     </h3>
                     
-                    <Input 
-                        label="Listing Title" 
-                        placeholder="e.g. Zenith Premium Boys PG near Plaksha" 
-                        value={title} 
-                        onChange={(e) => setTitle(e.target.value)} 
-                        required 
-                    />
+                    <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px", marginBottom: "20px" }}>
+                        <Input 
+                            label="Listing Title" 
+                            placeholder="e.g. Zenith Premium Boys PG near Plaksha" 
+                            value={title} 
+                            onChange={(e) => setTitle(e.target.value)} 
+                            required 
+                            style={{ marginBottom: 0 }}
+                        />
+                        <div>
+                            <label style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--text)", display: "block", marginBottom: "8px" }}>
+                                Preferred Tenant
+                            </label>
+                            <select 
+                                value={genderPreference} 
+                                onChange={(e) => setGenderPreference(e.target.value)}
+                                style={{ 
+                                    width: "100%", 
+                                    padding: "12px 16px", 
+                                    border: "1px solid var(--border)", 
+                                    borderRadius: "var(--radius)", 
+                                    outline: "none", 
+                                    fontSize: "1rem", 
+                                    background: "white",
+                                    color: "var(--text)",
+                                    height: "48px"
+                                }}
+                            >
+                                <option value="ANY">Anyone (Unisex)</option>
+                                <option value="MALE">Boys Only</option>
+                                <option value="FEMALE">Girls Only</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                    </div>
                     
                     <TextArea 
                         label="Description" 
@@ -169,7 +206,7 @@ export const AddPgForm: React.FC = () => {
                 {/* 3. Location Details */}
                 <Card padding="32px">
                     <h3 style={sectionTitleStyle}>
-                        <MapPin size={20} color="var(--primary)" /> Location Coordinates
+                        <MapPin size={20} color="var(--primary)" /> Location Details
                     </h3>
                     
                     <Input 
@@ -194,6 +231,39 @@ export const AddPgForm: React.FC = () => {
                             value={area} 
                             onChange={(e) => setArea(e.target.value)} 
                             required 
+                        />
+                    </div>
+
+                    <div style={{ borderTop: "1px dashed var(--border-light)", paddingTop: "20px", marginTop: "10px" }}>
+                        <label style={{ fontSize: "0.875rem", fontWeight: 600, display: "block", marginBottom: "8px" }}>
+                            Exact Location (GPS / Google Maps)
+                        </label>
+                        <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
+                            <Button type="button" variant="outline" onClick={getCurrentLocation} style={{ width: "100%", justifyContent: "center" }}>
+                                📍 Get Current GPS Location
+                            </Button>
+                        </div>
+                        <div style={flexGridStyle}>
+                            <Input 
+                                label="Latitude" 
+                                placeholder="e.g. 30.6682" 
+                                value={latitude} 
+                                onChange={(e) => setLatitude(e.target.value)} 
+                                style={{ marginBottom: 0 }}
+                            />
+                            <Input 
+                                label="Longitude" 
+                                placeholder="e.g. 76.7223" 
+                                value={longitude} 
+                                onChange={(e) => setLongitude(e.target.value)} 
+                                style={{ marginBottom: 0 }}
+                            />
+                        </div>
+                        <Input 
+                            label="Google Maps Share Link (Optional)" 
+                            placeholder="e.g. https://maps.app.goo.gl/..." 
+                            value={googleMapsUrl} 
+                            onChange={(e) => setGoogleMapsUrl(e.target.value)} 
                         />
                     </div>
                 </Card>
@@ -694,6 +764,83 @@ export const AddPgForm: React.FC = () => {
                             ))}
                         </div>
                     )}
+
+                    {/* Video Gallery */}
+                    <div style={{ borderTop: "1px dashed var(--border-light)", paddingTop: "24px", marginTop: "24px" }}>
+                        <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 600, color: "var(--text)", marginBottom: "12px" }}>
+                            Videos ({videos?.length || 0}/10)
+                        </label>
+                        <input
+                            ref={refs.videoFileRef}
+                            type="file"
+                            accept="video/*"
+                            multiple
+                            style={{ display: "none" }}
+                            onChange={handleVideoFiles}
+                        />
+                        <div 
+                            onClick={() => refs.videoFileRef.current?.click()}
+                            style={{
+                                border: "2px dashed var(--primary)",
+                                background: "var(--primary-light)",
+                                borderRadius: "16px",
+                                padding: "40px 20px",
+                                textAlign: "center",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                marginBottom: "24px"
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = "rgba(193, 53, 17, 0.08)"}
+                            onMouseLeave={(e) => e.currentTarget.style.background = "var(--primary-light)"}
+                        >
+                            <span style={{ fontSize: "2rem", display: "block", marginBottom: "8px" }}>🎥</span>
+                            <h4 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", marginBottom: "4px" }}>Click to upload videos</h4>
+                            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Supports MP4, WEBM (Max 10 videos, max 20MB each)</p>
+                        </div>
+
+                        {videoPreviews?.length > 0 && (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "12px" }}>
+                                {videoPreviews.map((url, idx) => (
+                                    <div 
+                                        key={idx}
+                                        style={{
+                                            position: "relative",
+                                            aspectRatio: "1.3",
+                                            borderRadius: "12px",
+                                            overflow: "hidden",
+                                            border: "1px solid var(--border-light)",
+                                            background: "black"
+                                        }}
+                                    >
+                                        <video src={url} style={{ width: "100%", height: "100%", objectFit: "cover" }} controls />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeVideo(idx)}
+                                            style={{
+                                                position: "absolute",
+                                                top: "6px",
+                                                right: "6px",
+                                                background: "rgba(193, 53, 17, 0.9)",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: "50%",
+                                                width: "22px",
+                                                height: "22px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                cursor: "pointer",
+                                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                                zIndex: 10
+                                            }}
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </Card>
 
                 {/* Submit Action */}
